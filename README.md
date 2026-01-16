@@ -1,36 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏦 MagicLink Client - Інтерфейс ПриватБанк
 
-## Getting Started
+Клієнтська частина системи аутентифікації з magic link у стилі ПриватБанку.
 
-First, run the development server:
+## 📋 Опис
 
+Сучасний веб-додаток на Next.js 16 з:
+- 🌑 Темною темою в стилі Приват24
+- 🔐 Безпечною аутентифікацією через magic link
+- 💳 Картками збору допомоги з номерами карт ПриватБанку
+- 📱 Адаптивним дизайном для всіх пристроїв
+- 🎨 Сучасними анімаціями та іконками
+
+## 🚀 Технології
+
+- **Next.js 16.1.1** - React фреймворк
+- **TypeScript** - типізація
+- **CSS3** - стилізація з анімаціями
+- **Flaticon** - SVG іконки
+
+## 📦 Встановлення
+
+### Локально
+
+1. Клонуй репозиторій:
+```bash
+git clone <your-repo-url>
+cd magiclink
+```
+
+2. Встанови залежності:
+```bash
+npm install
+```
+
+3. Створи файл `.env.local`:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+4. Запусти dev сервер:
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🌐 Деплой на Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Крок 1: Підготовка
 
-## Learn More
+1. Створи GitHub репозиторій
+2. Запуш код:
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin <your-github-repo>
+git push -u origin main
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Крок 2: Деплой
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Зареєструйся на [Vercel](https://vercel.com)
+2. Натисни **"New Project"**
+3. Import свій GitHub репозиторій
+4. Налаштуй:
+   - **Framework Preset**: Next.js
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `.next`
+5. Додай Environment Variable:
+   - `NEXT_PUBLIC_API_URL` = URL твого Render сервера
+6. Натисни **"Deploy"**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎨 Особливості дизайну
 
-## Deploy on Vercel
+### Темна тема
+- Фон: `#1a1a1a`
+- Картки: `#2d2d2d`
+- Акцент: `#5BBC5B` (зелений ПриватБанку)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Сторінки
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### Головна (/)
+- Форма входу/реєстрації
+- Логотип ПриватБанку
+- Анімації та ефекти
+
+#### Dashboard (/dashboard)
+- Привітання користувача
+- 3 картки збору допомоги з номерами карт ПриватБанку
+- Кнопки копіювання
+- Прогрес-бари
+
+## 📱 Адаптивність
+
+Всі елементи адаптуються під Desktop, Tablet та Mobile.
+
+## 📝 Scripts
+
+```bash
+npm run dev      # Запуск dev сервера
+npm run build    # Білд для production
+npm run start    # Запуск production сервера
+npm run lint     # Перевірка коду
+```
+
+---
+
+**Зроблено з 💚 в стилі ПриватБанку**
