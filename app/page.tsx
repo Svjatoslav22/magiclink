@@ -2,6 +2,8 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export default function Home() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -16,7 +18,7 @@ export default function Home() {
     setMessage('Реєстрація...');
     
     try {
-      const res = await fetch('http://localhost:3001/api/register', {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -44,7 +46,7 @@ export default function Home() {
     setMessage('Вхід...');
 
     try {
-      const res = await fetch('http://localhost:3001/api/login', {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
