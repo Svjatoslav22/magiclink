@@ -50,7 +50,7 @@ export default function Dashboard() {
     ];
 
     return(
-        <>
+        <div className="dashboard-wrapper">
             {/* Хедер */}
             <header className="dashboard-header">
                 <div className="dashboard-header-left">
@@ -342,6 +342,6 @@ export default function Dashboard() {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     )
 }
