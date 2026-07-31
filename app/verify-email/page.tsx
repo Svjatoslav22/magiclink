@@ -3,6 +3,8 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 // Логіка перевірки
 function VerifyContent() {
     const searchParams = useSearchParams();
@@ -13,7 +15,7 @@ function VerifyContent() {
 
     useEffect(() => {
         if (token) {
-            fetch("http://localhost:3001/api/verify-token", {
+            fetch(`${API_URL}/api/verify-token`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ token }),
