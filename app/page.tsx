@@ -5,12 +5,19 @@ import { useRouter } from 'next/navigation';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://magiclink-server.onrender.com';
 
 export default function Home() {
+  const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const router = useRouter();
+  // Якщо користувач вже залогінений — перенаправляємо на дашборд
+  React.useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      router.push('/dashboard');
+    }
+  }, [router]);
 
   const handleRegister = async (e: React.MouseEvent) => {
     e.preventDefault();
