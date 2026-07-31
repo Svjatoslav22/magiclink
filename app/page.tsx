@@ -67,6 +67,13 @@ export default function Home() {
         return;
       }
       
+      // Зберігаємо дані користувача в localStorage
+      if (data.user) {
+        localStorage.setItem('userId', data.user.id);
+        localStorage.setItem('userName', data.user.name);
+        localStorage.setItem('userEmail', data.user.email);
+      }
+      
       setMessage(data.message);
       
       // Перенаправлення на dashboard після успішного входу

@@ -1,16 +1,60 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://magiclink-server.onrender.com';
 
 export default function CardsPage() {
     const router = useRouter();
     const [showNotification, setShowNotification] = useState(false);
     const [activeNav, setActiveNav] = useState('cards');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [cards, setCards] = useState<Array<{
+        _id: string;
+        type: string;
+        number: string;
+        holder: string;
+        expiry: string;
+        balance: number;
+        balanceFormatted: string;
+        currency: string;
+        color: string;
+        isActive: boolean;
+    }>>([]);
 
     const showCopyNotification = () => {
         setShowNotification(true);
         setTimeout(() => setShowNotification(false), 3000);
     };
+
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+
+    useEffect(() => {
+        if (!userId) {
+            router.push('/');
+            return;
+        }
+        
+        const loadCards = async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/cards?userId=${userId}`);
+                const data = await res.json();
+                if (!res.ok) {
+                    setError(data.error || 'Помилка завантаження карток');
+                    setLoading(false);
+                    return;
+                }
+                setCards(data);
+                setLoading(false);
+            } catch (e) {
+                setError('Помилка з\'єднання з сервером');
+                setLoading(false);
+            }
+        };
+        
+        loadCards();
+    }, [userId]);
 
     const handleNavClick = (page: string) => {
         setActiveNav(page);
@@ -22,14 +66,30 @@ export default function CardsPage() {
         else if (page === 'support') router.push('/support');
     };
 
-    const cards = [
-        { type: 'Visa Platinum', number: '5168 7422 3456 7890', holder: 'OLEKSANDR PETRENKO', expiry: '12/28', balance: '45,280.50', color: 'linear-gradient(135deg, #1a3a1a, #0d260d)' },
-        { type: 'Mastercard Gold', number: '5168 7422 9876 5432', holder: 'OLEKSANDR PETRENKO', expiry: '09/27', balance: '12,500.00', color: 'linear-gradient(135deg, #3a2a1a, #261a0d)' },
-        { type: 'Visa Classic', number: '5168 7422 1122 3344', holder: 'OLEKSANDR PETRENKO', expiry: '03/29', balance: '3,850.75', color: 'linear-gradient(135deg, #1a2a3a, #0d1a26)' },
-    ];
+    if (loading) {
+        return (
+            <div className="dashboard-wrapper">
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: 20 }}>
+                    <div className="verify-spinner" style={{ width: 50, height: 50 }}></div>
+                    <p style={{ color: '#888', fontSize: 16 }}>Завантаження карток...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="dashboard-wrapper">
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ color: '#ff6b6b', fontSize: 20, fontWeight: 700 }}>{error}</div>
+                    <button className="btn-primary" style={{ maxWidth: 200, margin: 0 }} onClick={() => router.push('/')}>На головну</button>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <>
+        <div className="dashboard-wrapper">
             <header className="dashboard-header">
                 <div className="dashboard-header-left">
                     <div className="dashboard-logo" onClick={() => router.push('/dashboard')}>
@@ -65,10 +125,10 @@ export default function CardsPage() {
                 </div>
 
                 <div className="cards-grid">
-                    {cards.map((card, i) => (
-                        <div className="bank-card" key={i} style={{ background: card.color }}>
+                    {cards.length > 0 ? cards.map((card, i) => (
+                        <div className="bank-card" key={card._id || i} style={{ background: card.color || 'linear-gradient(135deg, #1a3a1a, #0d260d)' }}>
                             <div className="bank-card-type">{card.type}</div>
-                            <div className="bank-card-balance">{card.balance} грн</div>
+                            <div className="bank-card-balance">{card.balanceFormatted || card.balance + ' грн'}</div>
                             <div className="bank-card-number">{card.number}</div>
                             <div className="bank-card-footer">
                                 <div>
@@ -86,7 +146,13 @@ export default function CardsPage() {
                                 <button className="bank-card-action" onClick={showCopyNotification}>🔒 Блокувати</button>
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        <div style={{ textAlign: 'center', padding: 60, color: '#888', gridColumn: '1 / -1' }}>
+                            <div style={{ fontSize: 48, marginBottom: 16 }}>💳</div>
+                            <div style={{ fontSize: 18, fontWeight: 600 }}>У вас ще немає карток</div>
+                            <div style={{ marginTop: 8, fontSize: 14 }}>Замовте свою першу картку</div>
+                        </div>
+                    )}
                 </div>
 
                 <div style={{ textAlign: 'center', marginTop: 20 }}>
@@ -104,6 +170,6 @@ export default function CardsPage() {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }

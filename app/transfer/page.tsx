@@ -1,12 +1,24 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://magiclink-server.onrender.com';
 
 export default function TransferPage() {
     const router = useRouter();
     const [activeNav, setActiveNav] = useState('transfer');
     const [form, setForm] = useState({ card: '', amount: '', name: '', purpose: '' });
     const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setError] = useState('');
+    const [isSending, setIsSending] = useState(false);
+
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+
+    useEffect(() => {
+        if (!userId) {
+            router.push('/');
+        }
+    }, [userId]);
 
     const handleNavClick = (page: string) => {
         setActiveNav(page);
@@ -18,14 +30,50 @@ export default function TransferPage() {
         else if (page === 'support') router.push('/support');
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (form.card && form.amount && form.name) {
+        if (!form.card || !form.amount || !form.name) return;
+
+        const cardDigits = form.card.replace(/\s/g, '');
+        if (cardDigits.length !== 16) {
+            setError('Номер картки повинен містити 16 цифр');
+            return;
+        }
+
+        setIsSending(true);
+        setError('');
+
+        try {
+            const res = await fetch(`${API_URL}/api/transfer`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId,
+                    cardNumber: cardDigits,
+                    name: form.name,
+                    amount: form.amount,
+                    purpose: form.purpose
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setError(data.error || 'Помилка переказу');
+                setIsSending(false);
+                return;
+            }
+
             setShowSuccess(true);
+            setIsSending(false);
             setTimeout(() => {
                 setShowSuccess(false);
                 setForm({ card: '', amount: '', name: '', purpose: '' });
-            }, 3000);
+                router.push('/transactions');
+            }, 2000);
+        } catch (e) {
+            setError('Помилка з\'єднання з сервером');
+            setIsSending(false);
         }
     };
 
@@ -36,7 +84,7 @@ export default function TransferPage() {
     };
 
     return (
-        <>
+        <div className="dashboard-wrapper">
             <header className="dashboard-header">
                 <div className="dashboard-header-left">
                     <div className="dashboard-logo" onClick={() => router.push('/dashboard')}>
@@ -128,8 +176,11 @@ export default function TransferPage() {
                                 />
                             </div>
 
-                            <button type="submit" className="submit-btn">
-                                💸 Переказати {form.amount ? `${form.amount} грн` : 'кошти'}
+                            {error && (
+                                <div className="message error" style={{ marginBottom: 16 }}>{error}</div>
+                            )}
+                            <button type="submit" className="submit-btn" disabled={isSending}>
+                                {isSending ? 'Відправка...' : '💸 Переказати'} {!isSending && form.amount ? `${form.amount} грн` : ''}
                             </button>
                         </form>
                     </div>
@@ -190,6 +241,6 @@ export default function TransferPage() {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }

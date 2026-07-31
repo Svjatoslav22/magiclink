@@ -1,11 +1,59 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://magiclink-server.onrender.com';
 
 export default function TransactionsPage() {
     const router = useRouter();
     const [activeNav, setActiveNav] = useState('transactions');
     const [filter, setFilter] = useState('all');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [data, setData] = useState<{
+        transactions: Array<{
+            _id: string;
+            name: string;
+            date: string;
+            amount: string;
+            signedAmount: number;
+            type: string;
+            icon: string;
+            color: string;
+            category: string;
+        }>;
+        incomeTotal: string;
+        expenseTotal: string;
+        count: number;
+    } | null>(null);
+
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+
+    useEffect(() => {
+        if (!userId) {
+            router.push('/');
+            return;
+        }
+        
+        const loadTransactions = async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/transactions?userId=${userId}`);
+                const result = await res.json();
+                if (!res.ok) {
+                    setError(result.error || 'Помилка завантаження транзакцій');
+                    setLoading(false);
+                    return;
+                }
+                setData(result);
+                setLoading(false);
+            } catch (e) {
+                setError('Помилка з\'єднання з сервером');
+                setLoading(false);
+            }
+        };
+        
+        loadTransactions();
+    }, [userId]);
 
     const handleNavClick = (page: string) => {
         setActiveNav(page);
@@ -17,27 +65,34 @@ export default function TransactionsPage() {
         else if (page === 'support') router.push('/support');
     };
 
-    const allTransactions = [
-        { name: 'Переказ на картку', date: '31 лип, 14:32', amount: '-2,500.00 грн', type: 'negative', icon: '💳', color: 'red', category: 'transfer' },
-        { name: 'Поповнення рахунку', date: '31 лип, 11:15', amount: '+15,000.00 грн', type: 'positive', icon: '💰', color: 'green', category: 'income' },
-        { name: 'Оплата комунальних', date: '30 лип, 09:45', amount: '-3,200.00 грн', type: 'negative', icon: '🏠', color: 'orange', category: 'payment' },
-        { name: 'Переказ від друга', date: '27 лип, 18:20', amount: '+1,000.00 грн', type: 'positive', icon: '👤', color: 'blue', category: 'income' },
-        { name: 'Покупка в магазині', date: '26 лип, 16:10', amount: '-567.50 грн', type: 'negative', icon: '🛒', color: 'purple', category: 'payment' },
-        { name: 'Інтернет-магазин', date: '25 лип, 12:30', amount: '-1,299.00 грн', type: 'negative', icon: '📦', color: 'red', category: 'payment' },
-        { name: 'Поповнення мобільного', date: '24 лип, 08:00', amount: '-150.00 грн', type: 'negative', icon: '📱', color: 'orange', category: 'payment' },
-        { name: 'Переказ на картку', date: '22 лип, 20:15', amount: '-500.00 грн', type: 'negative', icon: '💳', color: 'red', category: 'transfer' },
-        { name: 'Кешбек за липень', date: '21 лип, 10:00', amount: '+234.50 грн', type: 'positive', icon: '🎁', color: 'green', category: 'income' },
-        { name: 'Оренда житла', date: '20 лип, 09:00', amount: '-8,000.00 грн', type: 'negative', icon: '🏢', color: 'purple', category: 'payment' },
-        { name: 'Зарплата', date: '15 лип, 09:00', amount: '+35,000.00 грн', type: 'positive', icon: '💼', color: 'green', category: 'income' },
-        { name: 'Ресторан', date: '14 лип, 20:30', amount: '-890.00 грн', type: 'negative', icon: '🍽️', color: 'orange', category: 'payment' },
-    ];
+    if (loading) {
+        return (
+            <div className="dashboard-wrapper">
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: 20 }}>
+                    <div className="verify-spinner" style={{ width: 50, height: 50 }}></div>
+                    <p style={{ color: '#888', fontSize: 16 }}>Завантаження транзакцій...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !data) {
+        return (
+            <div className="dashboard-wrapper">
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ color: '#ff6b6b', fontSize: 20, fontWeight: 700 }}>{error || 'Помилка завантаження'}</div>
+                    <button className="btn-primary" style={{ maxWidth: 200, margin: 0 }} onClick={() => router.push('/')}>На головну</button>
+                </div>
+            </div>
+        );
+    }
 
     const filteredTransactions = filter === 'all' 
-        ? allTransactions 
-        : allTransactions.filter(t => t.category === filter);
+        ? data.transactions 
+        : data.transactions.filter(t => t.category === filter);
 
     return (
-        <>
+        <div className="dashboard-wrapper">
             <header className="dashboard-header">
                 <div className="dashboard-header-left">
                     <div className="dashboard-logo" onClick={() => router.push('/dashboard')}>
@@ -95,19 +150,20 @@ export default function TransactionsPage() {
 
                 {/* Список транзакцій */}
                 <div className="transactions-card">
-                    {filteredTransactions.map((t, i) => (
-                        <div className="transaction-item" key={i}>
+                    {filteredTransactions.length > 0 ? filteredTransactions.map((t, i) => (
+                        <div className="transaction-item" key={t._id || i}>
                             <div className="transaction-left">
-                                <div className={`transaction-icon ${t.color}`}>{t.icon}</div>
+                                <div className={`transaction-icon ${t.color || 'blue'}`}>{t.icon || '💳'}</div>
                                 <div>
                                     <div className="transaction-name">{t.name}</div>
                                     <div className="transaction-date">{t.date}</div>
                                 </div>
                             </div>
-                            <div className={`transaction-amount ${t.type}`}>{t.amount}</div>
+                            <div className={`transaction-amount ${t.signedAmount < 0 ? 'negative' : 'positive'}`}>
+                                {t.signedAmount < 0 ? '-' : '+'}{t.amount}
+                            </div>
                         </div>
-                    ))}
-                    {filteredTransactions.length === 0 && (
+                    )) : (
                         <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>
                             Немає транзакцій за вибраним фільтром
                         </div>
@@ -121,7 +177,7 @@ export default function TransactionsPage() {
                             <div className="user-card-avatar" style={{ background: '#1a3a1a' }}>📊</div>
                             <div>
                                 <div className="user-card-name">Доходи за місяць</div>
-                                <div className="user-card-email">+51,234.50 грн</div>
+                                <div className="user-card-email" style={{ color: '#5BBC5B' }}>{data.incomeTotal}</div>
                             </div>
                         </div>
                     </div>
@@ -130,7 +186,7 @@ export default function TransactionsPage() {
                             <div className="user-card-avatar" style={{ background: '#3a1a1a' }}>📊</div>
                             <div>
                                 <div className="user-card-name">Витрати за місяць</div>
-                                <div className="user-card-email" style={{ color: '#ff6b6b' }}>-17,606.50 грн</div>
+                                <div className="user-card-email" style={{ color: '#ff6b6b' }}>{data.expenseTotal}</div>
                             </div>
                         </div>
                     </div>
@@ -139,12 +195,12 @@ export default function TransactionsPage() {
                             <div className="user-card-avatar" style={{ background: '#1a2a3a' }}>📊</div>
                             <div>
                                 <div className="user-card-name">Всього операцій</div>
-                                <div className="user-card-email">{filteredTransactions.length} транзакцій</div>
+                                <div className="user-card-email">{data.count} транзакцій</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }

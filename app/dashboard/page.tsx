@@ -1,7 +1,9 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './dashboard.css';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://magiclink-server.onrender.com';
 
 export default function Dashboard() {
     const router = useRouter();
@@ -9,8 +11,72 @@ export default function Dashboard() {
     const [showModal, setShowModal] = useState(false);
     const [modalType, setModalType] = useState<'topup' | 'transfer' | 'cards'>('topup');
     const [activeNav, setActiveNav] = useState('dashboard');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [dashboardData, setDashboardData] = useState<{
+        totalBalance: string;
+        totalBalanceRaw: number;
+        cardsCount: number;
+        transactions: Array<{
+            _id: string;
+            userId: string;
+            name: string;
+            date: string;
+            amount: string;
+            signedAmount: number;
+            type: string;
+            icon: string;
+            color: string;
+            category: string;
+        }>;
+        profile: {
+            name: string;
+            email: string;
+            phone: string;
+        } | null;
+        exchangeRates: Array<{
+            pair: string;
+            rate: string;
+            change: string;
+            direction: string;
+        }>;
+    } | null>(null);
+
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    const userName = typeof window !== 'undefined' ? localStorage.getItem('userName') || 'Користувач' : 'Користувач';
+    const userEmail = typeof window !== 'undefined' ? localStorage.getItem('userEmail') || '' : '';
+
+    // Якщо користувач не авторизований — перенаправляємо на логін
+    useEffect(() => {
+        if (!userId) {
+            router.push('/');
+            return;
+        }
+        
+        const loadDashboard = async () => {
+            try {
+                const res = await fetch(`${API_URL}/api/dashboard?userId=${userId}`);
+                const data = await res.json();
+                if (!res.ok) {
+                    setError(data.error || 'Помилка завантаження даних');
+                    setLoading(false);
+                    return;
+                }
+                setDashboardData(data);
+                setLoading(false);
+            } catch (e) {
+                setError('Помилка з\'єднання з сервером');
+                setLoading(false);
+            }
+        };
+        
+        loadDashboard();
+    }, [userId]);
 
     const handleLogout = () => {
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
         router.push('/');
     };
 
@@ -34,20 +100,30 @@ export default function Dashboard() {
         setShowModal(true);
     };
 
-    const transactions = [
-        { name: 'Переказ на картку', date: 'Сьогодні, 14:32', amount: '-2,500.00 грн', type: 'negative', icon: '💳', color: 'red' },
-        { name: 'Поповнення рахунку', date: 'Сьогодні, 11:15', amount: '+15,000.00 грн', type: 'positive', icon: '💰', color: 'green' },
-        { name: 'Оплата комунальних', date: 'Вчора, 09:45', amount: '-3,200.00 грн', type: 'negative', icon: '🏠', color: 'orange' },
-        { name: 'Переказ від друга', date: '27 лип, 18:20', amount: '+1,000.00 грн', type: 'positive', icon: '👤', color: 'blue' },
-        { name: 'Покупка в магазині', date: '26 лип, 16:10', amount: '-567.50 грн', type: 'negative', icon: '🛒', color: 'purple' },
-    ];
+    if (loading) {
+        return (
+            <div className="dashboard-wrapper">
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: 20 }}>
+                    <div className="verify-spinner" style={{ width: 50, height: 50 }}></div>
+                    <p style={{ color: '#888', fontSize: 16 }}>Завантаження даних...</p>
+                </div>
+            </div>
+        );
+    }
 
-    const exchangeRates = [
-        { pair: 'USD/UAH', rate: '41.25', change: '+0.15', direction: 'up' },
-        { pair: 'EUR/UAH', rate: '44.80', change: '-0.25', direction: 'down' },
-        { pair: 'EUR/USD', rate: '1.086', change: '-0.008', direction: 'down' },
-        { pair: 'PLN/UAH', rate: '10.52', change: '+0.12', direction: 'up' },
-    ];
+    if (error || !dashboardData) {
+        return (
+            <div className="dashboard-wrapper">
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ color: '#ff6b6b', fontSize: 20, fontWeight: 700 }}>{error || 'Помилка завантаження'}</div>
+                    <button className="btn-primary" style={{ maxWidth: 200, margin: 0 }} onClick={handleLogout}>На головну</button>
+                </div>
+            </div>
+        );
+    }
+
+    const transactions = dashboardData.transactions || [];
+    const exchangeRates = dashboardData.exchangeRates || [];
 
     return(
         <div className="dashboard-wrapper">
@@ -67,7 +143,9 @@ export default function Dashboard() {
                         <img src="https://cdn-icons-png.flaticon.com/512/2874/2874802.png" alt="Notifications" />
                         <span className="notification-badge">3</span>
                     </button>
-                    <div className="user-avatar" onClick={() => router.push('/settings')}>О</div>
+                    <div className="user-avatar" onClick={() => router.push('/settings')}>
+                        {userName.charAt(0).toUpperCase()}
+                    </div>
                 </div>
             </header>
 
@@ -98,7 +176,7 @@ export default function Dashboard() {
                 <div className="balance-card">
                     <div className="balance-label">Загальний баланс</div>
                     <div className="balance-amount">
-                        45,280.50 <span className="balance-currency">грн</span>
+                        {dashboardData.totalBalance || '0.00 грн'}
                     </div>
                     <div className="balance-change">+2,340.00 грн за цей місяць</div>
                     <div className="balance-actions">
@@ -134,16 +212,16 @@ export default function Dashboard() {
                 <div className="cards-grid">
                     <div className="user-card">
                         <div className="user-card-header">
-                            <div className="user-card-avatar">О</div>
+                            <div className="user-card-avatar">{userName.charAt(0).toUpperCase()}</div>
                             <div>
-                                <div className="user-card-name">Олександр Петренко</div>
-                                <div className="user-card-email">oleksandr@example.com</div>
+                                <div className="user-card-name">{userName}</div>
+                                <div className="user-card-email">{userEmail}</div>
                             </div>
                         </div>
                         <div className="user-card-stats">
                             <div className="stat-item">
                                 <div className="stat-label">Рахунків</div>
-                                <div className="stat-value">3</div>
+                                <div className="stat-value">{dashboardData.cardsCount || 0}</div>
                             </div>
                             <div className="stat-item">
                                 <div className="stat-label">Кредитний ліміт</div>
@@ -168,18 +246,22 @@ export default function Dashboard() {
                                 Всі →
                             </button>
                         </div>
-                        {transactions.map((t, i) => (
+                        {transactions.length > 0 ? transactions.map((t, i) => (
                             <div className="transaction-item" key={i}>
                                 <div className="transaction-left">
-                                    <div className={`transaction-icon ${t.color}`}>{t.icon}</div>
+                                    <div className={`transaction-icon ${t.color || 'blue'}`}>{t.icon || '💳'}</div>
                                     <div>
                                         <div className="transaction-name">{t.name}</div>
                                         <div className="transaction-date">{t.date}</div>
                                     </div>
                                 </div>
-                                <div className={`transaction-amount ${t.type}`}>{t.amount}</div>
+                                <div className={`transaction-amount ${t.signedAmount < 0 ? 'negative' : 'positive'}`}>
+                                    {t.signedAmount < 0 ? '-' : '+'}{t.amount}
+                                </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>Транзакцій поки немає</div>
+                        )}
                     </div>
                 </div>
 
@@ -325,7 +407,7 @@ export default function Dashboard() {
                                 'Оберіть спосіб поповнення: з іншої картки, готівкою через термінал або переказом з іншого банку.' :
                              modalType === 'transfer' ?
                                 'Для переказу коштів перейдіть на сторінку переказів або скористайтесь формою швидкого переказу.' :
-                                'У вас є 3 активні картки. Перейдіть на сторінку карток для перегляду детальної інформації.'}
+                                'У вас є ' + (dashboardData.cardsCount || 0) + ' активні картки. Перейдіть на сторінку карток для перегляду детальної інформації.'}
                         </div>
                         <div className="modal-actions">
                             <button className="btn-primary" onClick={() => {
