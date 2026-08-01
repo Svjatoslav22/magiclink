@@ -1,12 +1,20 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function SupportPage() {
     const router = useRouter();
     const [activeNav, setActiveNav] = useState('support');
     const [showNotification, setShowNotification] = useState(false);
     const [message, setMessage] = useState('');
+
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+
+    useEffect(() => {
+        if (!userId) {
+            router.push('/');
+        }
+    }, [userId]);
 
     const handleNavClick = (page: string) => {
         setActiveNav(page);
@@ -42,7 +50,7 @@ export default function SupportPage() {
     ];
 
     return (
-        <>
+        <div className="dashboard-wrapper">
             <header className="dashboard-header">
                 <div className="dashboard-header-left">
                     <div className="dashboard-logo" onClick={() => router.push('/dashboard')}>
@@ -137,6 +145,6 @@ export default function SupportPage() {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 }
