@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import './dashboard.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://magiclink-server.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function Dashboard() {
     const router = useRouter();

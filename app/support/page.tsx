@@ -2,6 +2,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
 export default function SupportPage() {
     const router = useRouter();
     const [activeNav, setActiveNav] = useState('support');

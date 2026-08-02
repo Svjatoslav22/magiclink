@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://magiclink-server.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Логіка перевірки
 function VerifyContent() {

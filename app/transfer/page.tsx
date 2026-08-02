@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://magiclink-server.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function TransferPage() {
     const router = useRouter();

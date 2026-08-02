@@ -1,18 +1,13 @@
-# 🏦 MagicLink Client 
-
+# 🏦 MagicLink - Банківська система
 
 ### Dashboard - Привітання
 ![Dashboard](./screenshots/dashboard.png)
 
-
 ### Dashboard - Картки допомоги
 ![Dashboard with Cards](./screenshots/dashboardScroll.png)
 
-
 ### Головна сторінка - Вхід/Реєстрація
 ![Login Page](./screenshots/login.png)
-
-
 
 ## 🚀 Технології
 
@@ -20,6 +15,7 @@
 - **TypeScript** - типізація
 - **CSS3** - стилізація з анімаціями
 - **Flaticon** - SVG іконки
+- **MongoDB** - база даних
 
 ## 📦 Встановлення
 
@@ -38,7 +34,7 @@ npm install
 
 3. Створи файл `.env.local`:
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
 4. Запусти dev сервер:
@@ -72,9 +68,8 @@ git push -u origin main
    - **Build Command**: `npm run build`
    - **Output Directory**: `.next`
 5. Додай Environment Variable:
-   - `NEXT_PUBLIC_API_URL` = URL твого Render сервера
+   - `NEXT_PUBLIC_API_URL` = `http://localhost:3000` (або URL твого бекенду)
 6. Натисни **"Deploy"**
-
 
 ## 📝 Scripts
 
@@ -85,5 +80,34 @@ npm run start    # Запуск production сервера
 npm run lint     # Перевірка коду
 ```
 
----
+## 🗄️ База даних
 
+Проект використовує MongoDB для зберігання:
+- Користувачів
+- Карток
+- Транзакцій
+- Налаштувань
+
+## 🔐 Безпека
+
+- Паролі хешуються через bcrypt
+- Email верифікація
+- JWT токени для авторизації
+
+## 📱 Функціонал
+
+- ✅ Реєстрація та вхід
+- ✅ Перегляд балансу
+- ✅ Управління картками
+- ✅ Історія транзакцій
+- ✅ Переказ коштів
+- ✅ Налаштування профілю
+- ✅ Підтримка
+
+## 🛠️ Розробка
+
+Проект має повний функціонал банківської системи з динамічними даними, які зберігаються в MongoDB.
+
+## 📄 Ліцензія
+
+MIT

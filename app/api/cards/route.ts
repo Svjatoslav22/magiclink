@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // TODO: Створити картку в MongoDB
     const newCard = {
-      _id: new ObjectId(),
+      _id: Date.now().toString(),
       userId,
       type,
       number,
